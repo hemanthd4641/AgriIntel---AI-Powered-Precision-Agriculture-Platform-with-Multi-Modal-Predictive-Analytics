@@ -1,0 +1,45 @@
+{
+  "model_type": "XGBoost",
+  "accuracy": 0.345,
+  "features": [
+    "N",
+    "P",
+    "K",
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall"
+  ],
+  "classes": [
+    "maize",
+    "rice",
+    "wheat",
+    "sugarcane",
+    "cotton"
+  ],
+  "insights": {
+    "model_type": "XGBoost",
+    "training_samples": 800,
+    "features": [
+      "N",
+      "P",
+      "K",
+      "temperature",
+      "humidity",
+      "ph",
+      "rainfall"
+    ],
+    "classes": [
+      "maize",
+      "rice",
+      "wheat",
+      "sugarcane",
+      "cotton"
+    ],
+    "feature_importance": {},
+    "model_performance": {},
+    "model_accuracy": 0.345
+  },
+  "sample_explanation": "Based on the analysis of your soil and weather conditions, Maize is the recommended crop for your farm.\n\nKey factors supporting this recommendation:\n- Soil nutrients (N:120.0, P:60.0, K:80.0) are well-balanced for this crop.\n- Soil pH (6.5) is optimal for most crops including this one.\n- Weather conditions (Temp:25.0\u00b0C, Humidity:70.0%, Rainfall:150.0mm) are ideal for this crop.\n\nMaize is known for:\n- Warm season crop, needs plenty of sunlight\n- High nitrogen requirement\n- Versatile crop used for food and feed",
+  "training_date": "2025-10-07T16:41:32.007305"
+}
