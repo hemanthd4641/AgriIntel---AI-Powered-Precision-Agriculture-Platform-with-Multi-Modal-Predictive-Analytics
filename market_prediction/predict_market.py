@@ -80,7 +80,8 @@ def load_llm_components():
     
     try:
         if LLM_AVAILABLE:
-            agriculture_llm = AgricultureLLM()
+            # Use Hugging Face API only (no local models)
+            agriculture_llm = AgricultureLLM(force_local=False)
             market_rag = MarketPredictionRAG()
             print("LLM and RAG components loaded successfully")
         else:
@@ -355,7 +356,7 @@ def _calculate_confidence_score(yield_prediction, global_demand, weather_impact,
 
 def _generate_enhanced_insights(crop, predicted_price, market_trend, input_data, confidence_score):
     """
-    Generate enhanced insights using LLM and RAG if available (with caching)
+    Generate enhanced insights using LLM only (no RAG for market prediction)
     
     Args:
         crop (str): Crop name
@@ -382,14 +383,14 @@ def _generate_enhanced_insights(crop, predicted_price, market_trend, input_data,
         return _generate_rule_based_insights(crop, predicted_price, market_trend, input_data, confidence_score, insights)
     
     try:
-        # Load LLM and RAG components
-        llm, rag_system = load_llm_components()
+        # Load LLM component
+        llm, _ = load_llm_components()
         
-        if llm is None or rag_system is None:
-            print("LLM or RAG system not available")
+        if llm is None:
+            print("LLM not available")
             return _generate_rule_based_insights(crop, predicted_price, market_trend, input_data, confidence_score, insights)
         
-        # Generate comprehensive market analysis using LLM
+        # Generate comprehensive market analysis using LLM (only via Hugging Face API)
         analysis_prompt = f"""
         Provide a comprehensive market analysis for {crop} with a predicted price of ${predicted_price}/ton and a {market_trend} market trend.
         
@@ -412,37 +413,37 @@ def _generate_enhanced_insights(crop, predicted_price, market_trend, input_data,
         Format the response in clear sections with actionable insights for farmers.
         """
         
-        if llm.text_generator:
-            try:
-                analysis_response = llm.text_generator(
-                    analysis_prompt,
-                    max_new_tokens=500,
-                    temperature=0.7,
-                    do_sample=True
-                )
-                insights['market_analysis'] = analysis_response[0]['generated_text'][len(analysis_prompt):].strip()
-            except Exception as e:
-                print(f"Error generating LLM market analysis: {str(e)}")
-                insights['market_analysis'] = "Comprehensive market analysis not available at this time."
-        else:
-            insights['market_analysis'] = "LLM not available for comprehensive market analysis."
-        
-        # Generate detailed recommendations using RAG
-        recommendation_query = f"What are the best market strategies for {crop} at ${predicted_price}/ton with a {market_trend} trend?"
         try:
-            rag_context = rag_system.generate_context_aware_response(recommendation_query, {
-                'crop': crop,
-                'predicted_price': predicted_price,
-                'market_trend': market_trend,
-                'confidence_score': confidence_score,
-                'yield_prediction': input_data.get('yield_prediction'),
-                'global_demand': input_data.get('global_demand'),
-                'weather_impact': input_data.get('weather_impact')
-            })
-            
-            insights['llm_recommendations'] = rag_context
+            # Use LLM with Hugging Face API only
+            analysis_response = llm.chat_with_farmer(analysis_prompt)
+            insights['market_analysis'] = analysis_response
         except Exception as e:
-            print(f"Error generating RAG recommendations: {str(e)}")
+            print(f"Error generating LLM market analysis: {str(e)}")
+            insights['market_analysis'] = "Comprehensive market analysis not available at this time."
+            
+        # Generate detailed recommendations using LLM only (no RAG)
+        recommendation_prompt = f"""
+        What are the best market strategies for {crop} at ${predicted_price}/ton with a {market_trend} trend?
+        
+        Consider these factors:
+        - Yield prediction: {input_data.get('yield_prediction')} tons/hectare
+        - Global demand: {input_data.get('global_demand')}
+        - Weather impact: {input_data.get('weather_impact')}
+        - Economic condition: {input_data.get('economic_condition')}
+        - Supply index: {input_data.get('supply_index')}
+        - Demand index: {input_data.get('demand_index')}
+        - Inventory level: {input_data.get('inventory_level')}
+        - Export demand: {input_data.get('export_demand')}
+        - Confidence score: {confidence_score}
+        
+        Please provide specific, actionable recommendations for farmers.
+        """
+        
+        try:
+            recommendation_response = llm.chat_with_farmer(recommendation_prompt)
+            insights['llm_recommendations'] = recommendation_response
+        except Exception as e:
+            print(f"Error generating LLM recommendations: {str(e)}")
             insights['llm_recommendations'] = "Detailed recommendations not available at this time."
             
     except Exception as e:

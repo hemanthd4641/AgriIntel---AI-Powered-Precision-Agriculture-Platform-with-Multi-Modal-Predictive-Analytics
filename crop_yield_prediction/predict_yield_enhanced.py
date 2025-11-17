@@ -332,11 +332,9 @@ def generate_llm_explanation(predicted_yield, input_data, insights):
     try:
         # Try to import LLM components
         from explainable_ai.llm_interface import AgricultureLLM
-        from explainable_ai.rag_system import AgricultureRAG
         
-        # Initialize LLM and RAG system
-        llm = AgricultureLLM(model_name='microsoft/Phi-3-mini-4k-instruct')
-        rag_system = AgricultureRAG()
+        # Initialize LLM with Hugging Face API only
+        llm = AgricultureLLM(model_name='microsoft/Phi-3-mini-4k-instruct', force_local=False)
         
         # Create detailed context for LLM
         context = f"""
@@ -390,26 +388,13 @@ def generate_llm_explanation(predicted_yield, input_data, insights):
         Format your response in clear sections with practical, farm-ready advice.
         """
         
-        # Generate enhanced explanation using LLM
-        if llm.text_generator:
-            try:
-                response = llm.text_generator(
-                    prompt,
-                    max_new_tokens=800,
-                    temperature=0.7,
-                    do_sample=True,
-                    top_p=0.9
-                )
-                # Extract generated text
-                if isinstance(response, list) and len(response) > 0:
-                    if isinstance(response[0], dict) and 'generated_text' in response[0]:
-                        generated_text = response[0]['generated_text']
-                        # Remove the prompt from the response
-                        explanation = generated_text[len(prompt):].strip()
-                        if explanation:
-                            return explanation
-            except Exception as e:
-                print(f"Error generating LLM explanation: {str(e)}")
+        # Generate enhanced explanation using LLM (only via Hugging Face API)
+        try:
+            response = llm.chat_with_farmer(prompt)
+            if response:
+                return response
+        except Exception as e:
+            print(f"Error generating LLM explanation: {str(e)}")
         
     except ImportError as e:
         print(f"LLM components not available: {str(e)}")

@@ -43,16 +43,20 @@ class AgriculturalChatbot:
 
         # Initialize LLM with RAG system integration
         try:
-            # Use Hugging Face API if configured, otherwise use local model
+            # Use Hugging Face API only (no local models)
             self.llm = AgricultureLLM(
                 model_name='microsoft/Phi-3-mini-4k-instruct', 
-                rag_system=self.rag_system
+                rag_system=self.rag_system,
+                force_local=False  # Ensure we only use HF API
             )
             print("LLM initialized successfully")
         except Exception as e:
             print(f"Error initializing LLM: {str(e)}")
             try:
-                self.llm = AgricultureLLM(model_name='microsoft/Phi-3-mini-4k-instruct')
+                self.llm = AgricultureLLM(
+                    model_name='microsoft/Phi-3-mini-4k-instruct',
+                    force_local=False  # Ensure we only use HF API
+                )
                 print("Fallback LLM initialization successful")
             except Exception as e2:
                 print(f"Fallback LLM initialization also failed: {str(e2)}")
@@ -249,7 +253,7 @@ class AgriculturalChatbot:
         Returns:
             dict: Status information
         """
-        llm_available = bool(self.llm and getattr(self.llm, 'text_generator', None))
+        llm_available = bool(self.llm and getattr(self.llm, 'use_hf_api', False))
         rag_available = self.rag_system is not None
         
         kb_info = {}

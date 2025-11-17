@@ -126,6 +126,44 @@ def get_disease_info(class_name):
 def generate_llm_disease_report(disease_info, confidence):
     """Generate a detailed disease report using LLM principles"""
     
+    # Try to import LLM components
+    try:
+        from explainable_ai.llm_interface import AgricultureLLM
+        
+        # Initialize LLM with Hugging Face API only
+        llm = AgricultureLLM(model_name='microsoft/Phi-3-mini-4k-instruct', force_local=False)
+        
+        # Create prompt for LLM
+        crop = disease_info['crop']
+        disease = disease_info['disease']
+        
+        prompt = f"""
+        You are an expert agricultural advisor. Provide detailed information about {disease} affecting {crop} plants.
+        
+        Please provide:
+        1. A detailed description of the disease
+        2. Key symptoms to identify this disease
+        3. Treatment recommendations
+        4. Prevention strategies
+        5. Best practices for managing this disease
+        
+        Format your response in clear sections with practical, actionable advice for farmers.
+        Confidence level: {confidence:.2%}
+        """
+        
+        # Generate report using LLM (only via Hugging Face API)
+        try:
+            report = llm.chat_with_farmer(prompt)
+            if report:
+                return report
+        except Exception as e:
+            print(f"Error generating LLM disease report: {str(e)}")
+            
+    except ImportError:
+        print("LLM components not available, using fallback methods")
+    except Exception as e:
+        print(f"Error loading LLM components: {str(e)}")
+    
     # This is a simplified version - in a real implementation, this would connect to your LLM
     crop = disease_info['crop']
     disease = disease_info['disease']
