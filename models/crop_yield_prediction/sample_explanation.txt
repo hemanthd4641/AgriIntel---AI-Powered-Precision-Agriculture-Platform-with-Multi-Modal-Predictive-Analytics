@@ -1,0 +1,5 @@
+Sample Input: {'Region': 'West', 'Soil_Type': 'Sandy', 'Crop': 'Cotton', 'Rainfall_mm': 900.0, 'Temperature_Celsius': 28.0, 'Fertilizer_Used': True, 'Irrigation_Used': True, 'Weather_Condition': 'Sunny', 'Days_to_Harvest': 120}
+Predicted Yield: 7.64 tons/hectare
+
+Generated Explanation:
+Based on the analysis of growing conditions, the predicted yield for Cotton is 7.64 tons per hectare. Excellent yield prediction of 7.64 tons/hectare for Cotton. Key factors influencing this prediction include: Rainfall is within optimal range, Temperature is within optimal range, Fertilizer application will support growth, Irrigation provides consistent moisture. Risk assessment: Low risk - conditions are favorable for good yield. Prediction is 172.8% above typical Cotton yield benchmark of 2.8 tons/hectare. This prediction is based on historical data patterns and should be used as a guide for planning purposes.
