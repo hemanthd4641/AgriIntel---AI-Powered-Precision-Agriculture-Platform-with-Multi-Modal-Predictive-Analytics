@@ -1,0 +1,31 @@
+{
+  "training_date": "2025-10-07T17:33:05.475784",
+  "model_performance": {
+    "mean_squared_error": 0.2763412578204251,
+    "mean_absolute_error": 0.4189075538146004,
+    "r2_score": 0.9041775351088285
+  },
+  "feature_importance": {
+    "Rainfall_mm": 0.6182672018112113,
+    "Fertilizer_Used": 0.1957576640986937,
+    "Irrigation_Used": 0.1184284631133535,
+    "Temperature_Celsius": 0.02643847553258464,
+    "Days_to_Harvest": 0.01701829651284199,
+    "Soil_Type": 0.007301185036779072,
+    "Crop": 0.007281482460628246,
+    "Region": 0.005453696332659463,
+    "Weather_Condition": 0.004053535101248021
+  },
+  "insights_template": {
+    "prediction_summary": "Excellent yield prediction of 7.64 tons/hectare for Cotton.",
+    "key_factors": [
+      "Rainfall is within optimal range",
+      "Temperature is within optimal range",
+      "Fertilizer application will support growth",
+      "Irrigation provides consistent moisture"
+    ],
+    "recommendations": [],
+    "risk_assessment": "Low risk - conditions are favorable for good yield",
+    "comparison_to_benchmarks": "Prediction is 172.8% above typical Cotton yield benchmark of 2.8 tons/hectare"
+  }
+}

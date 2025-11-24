@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agriculture - Crop Yield Prediction</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/chatbot.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% csrf_token %}
+    <style>
+        /* Chatbot overlay styles */
+        .chat-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+        .chat-overlay.active {
+            display: block;
+        }
+        .chat-container-inline {
+            display: flex;
+            position: relative;
+            width: 100%;
+            height: 600px;
+            max-height: 75vh;
+            background: var(--surface, #ffffff);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chatbot-section {
+            margin: 2rem auto !important;
+            padding: 0 !important;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        #chatbot-section.active {
+            display: flex;
+        }
+        #chatbot-section .card {
+            padding: 0;
+            overflow: hidden;
+            margin: 0 auto !important;
+            max-width: 2100px;
+            width: 95%;
+        }
+        #chatbot-section .chat-header {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+        }
+        #chatbot-section .chat-header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        /* Scroll to chatbot when active */
+        #chatbot-section.active {
+            scroll-margin-top: 80px;
+        }
+        .chat-container-inline {
+            max-height: 700px;
+            height: 700px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🌾 Smart Agriculture Platform</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-target="dashboard">Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-target="predictions">Predictions</a></li>
+                    <li><a href="#" class="nav-link" data-target="disease-detection">Disease Detection</a></li>
+                    <li><a href="#" class="nav-link" data-target="recommendations">Crop & Fertilizer</a></li>
+                    <li><a href="#" class="nav-link" data-target="market-predictions">Market Predictions</a></li>
+                    <li><a href="#" class="nav-link" data-target="pest-predictions">Pest Predictions</a></li>
+                    <li><a href="#" class="nav-link" data-target="reports-charts">Reports & Charts</a></li>
+                    <li><a href="#" class="nav-link" data-target="chatbot-section">🤖 AI Chatbot</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="feature-section active">
+            <h2>Smart Agriculture Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Prediction Statistics</h3>
+                    <div id="prediction-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">3.2</span>
+                            <span class="stat-label">Avg Yield (tons/ha)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">+5%</span>
+                            <span class="stat-label">Weather Impact</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">0.65</span>
+                            <span class="stat-label">Avg NDVI</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">85%</span>
+                            <span class="stat-label">Confidence</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="btn feature-btn" data-target="predictions">Yield Predictions</button>
+                        <button class="btn feature-btn" data-target="disease-detection">Disease Detection</button>
+                        <button class="btn feature-btn" data-target="market-predictions">Market Predictions</button>
+                        <button class="btn feature-btn" data-target="pest-predictions">Pest Predictions</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-activity">
+                        <ul>
+                            <li>New prediction generated</li>
+                            <li>Disease detection completed</li>
+                            <li>Recommendations updated</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>System Status</h3>
+                    <div id="system-status">
+                        <div class="status-item">
+                            <span class="status-indicator green"></span>
+                            <span class="status-label">ML Models</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator green"></span>
+                            <span class="status-label">Data Processing</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator yellow"></span>
+                            <span class="status-label">Weather API</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Predictions Section -->
+        <section id="predictions" class="feature-section">
+            <h2>Crop Yield Predictions</h2>
+            <div class="card">
+                <h3>Enter Farm Data for Yield Prediction</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Enter the farm conditions and crop details to predict yield. 
+                    All fields are required for accurate predictions.</p>
+                </div>
+                <form id="prediction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="region">Region:</label>
+                            <select id="region" required>
+                                <option value="">Select Region</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="Central">Central</option>
+                            </select>
+                            <small class="form-text">Geographical region of the farm</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="soil-type">Soil Type:</label>
+                            <select id="soil-type" required>
+                                <option value="">Select Soil Type</option>
+                                <option value="Clay">Clay</option>
+                                <option value="Sandy">Sandy</option>
+                                <option value="Loam">Loam</option>
+                                <option value="Silt">Silt</option>
+                                <option value="Peat">Peat</option>
+                                <option value="Chalky">Chalky</option>
+                            </select>
+                            <small class="form-text">Type of soil in the farm</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="crop">Crop:</label>
+                            <select id="crop" required>
+                                <option value="">Select Crop</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Barley">Barley</option>
+                                <option value="Soybean">Soybean</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Potato">Potato</option>
+                                <option value="Tomato">Tomato</option>
+                            </select>
+                            <small class="form-text">Type of crop being grown</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rainfall-mm">Rainfall (mm):</label>
+                            <input type="number" id="rainfall-mm" step="0.1" min="0" max="2000" placeholder="e.g., 800.5" required>
+                            <small class="form-text">Annual or seasonal rainfall in millimeters</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature-celsius">Temperature (°C):</label>
+                            <input type="number" id="temperature-celsius" step="0.1" min="-10" max="50" placeholder="e.g., 25.3" required>
+                            <small class="form-text">Average temperature in Celsius</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="days-to-harvest">Days to Harvest:</label>
+                            <input type="number" id="days-to-harvest" min="1" max="365" placeholder="e.g., 120" required>
+                            <small class="form-text">Number of days until harvest</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fertilizer-used">Fertilizer Used:</label>
+                            <select id="fertilizer-used" required>
+                                <option value="">Select Option</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <small class="form-text">Whether fertilizer is being used</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="irrigation-used">Irrigation Used:</label>
+                            <select id="irrigation-used" required>
+                                <option value="">Select Option</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <small class="form-text">Whether irrigation is being used</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="weather-condition">Weather Condition:</label>
+                            <select id="weather-condition" required>
+                                <option value="">Select Condition</option>
+                                <option value="Sunny">Sunny</option>
+                                <option value="Cloudy">Cloudy</option>
+                                <option value="Rainy">Rainy</option>
+                                <option value="Windy">Windy</option>
+                                <option value="Stormy">Stormy</option>
+                            </select>
+                            <small class="form-text">Current weather condition</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Predict Yield</button>
+                </form>
+            </div>
+            
+            <div id="prediction-results" class="card" style="display: none;">
+                <h3>Prediction Results</h3>
+                <div id="prediction-output">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Disease Detection Section -->
+        <section id="disease-detection" class="feature-section">
+            <h2>Plant Disease Detection</h2>
+            <div class="card">
+                <h3>Upload Leaf Image for Disease Detection</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Upload a clear photo of a plant leaf showing signs of disease. 
+                    The system will analyze the image and provide disease identification and treatment advice.</p>
+                </div>
+                <form id="disease-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="leaf-image">Upload Leaf Image (JPG, PNG):</label>
+                        <input type="file" id="leaf-image" accept="image/*" required>
+                        <small class="form-text">For best results, ensure the image is clear and well-lit</small>
+                    </div>
+                    <button type="submit" class="btn primary">Analyze for Diseases</button>
+                </form>
+            </div>
+            
+            <div id="disease-results" class="card" style="display: none;">
+                <h3>Disease Detection Results</h3>
+                <div id="disease-output">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+            
+            <div id="disease-advice" class="card" style="display: none;">
+                <h3>Treatment Advice</h3>
+                <div id="advice-output">
+                    <!-- Advice will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations Section -->
+        <section id="recommendations" class="feature-section">
+            <h2>Crop & Fertilizer Recommendations</h2>
+            <div class="card">
+                <h3>Enter Your Farm Conditions</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Enter the soil conditions and weather data for your farm. 
+                    The system will recommend the best crops to plant and the appropriate fertilizers to use.</p>
+                    <p><em>Note: All values should be for the top 15 cm of soil.</em></p>
+                </div>
+                <form id="recommendation-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="soil-nitrogen">Soil Nitrogen (kg/ha):</label>
+                            <input type="number" id="soil-nitrogen" step="0.1" min="0" max="500" placeholder="e.g., 120.5" required>
+                            <small class="form-text">Amount of nitrogen in the soil</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="soil-phosphorus">Soil Phosphorus (kg/ha):</label>
+                            <input type="number" id="soil-phosphorus" step="0.1" min="0" max="500" placeholder="e.g., 45.2" required>
+                            <small class="form-text">Amount of phosphorus in the soil</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="soil-potassium">Soil Potassium (kg/ha):</label>
+                            <input type="number" id="soil-potassium" step="0.1" min="0" max="500" placeholder="e.g., 90.8" required>
+                            <small class="form-text">Amount of potassium in the soil</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="soil-ph">Soil pH:</label>
+                            <input type="number" id="soil-ph" step="0.1" min="0" max="14" placeholder="e.g., 6.5" required>
+                            <small class="form-text">Soil acidity level (0-14 scale)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°C):</label>
+                            <input type="number" id="temperature" step="0.1" min="-10" max="50" placeholder="e.g., 25.3" required>
+                            <small class="form-text">Average temperature in your area</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity (%):</label>
+                            <input type="number" id="humidity" step="0.1" min="0" max="100" placeholder="e.g., 65.0" required>
+                            <small class="form-text">Average humidity level</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="rainfall">Rainfall (mm):</label>
+                            <input type="number" id="rainfall" step="0.1" min="0" max="500" placeholder="e.g., 120.5" required>
+                            <small class="form-text">Monthly rainfall amount</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="location">Location (State/Region):</label>
+                            <input type="text" id="location" placeholder="e.g., California" required>
+                            <small class="form-text">Your general location</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="season">Season:</label>
+                            <select id="season" required>
+                                <option value="">Select Season</option>
+                                <option value="spring">Spring</option>
+                                <option value="summer">Summer</option>
+                                <option value="autumn">Autumn/Fall</option>
+                                <option value="winter">Winter</option>
+                            </select>
+                            <small class="form-text">Current growing season</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Get Recommendations</button>
+                </form>
+            </div>
+            
+            <div id="recommendation-results" class="card" style="display: none;">
+                <h3>Recommendation Results</h3>
+                <div id="recommendation-output">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Predictions Section -->
+        <section id="market-predictions" class="feature-section">
+            <h2>Market Price Predictions</h2>
+            <div class="card">
+                <h3>Predict Crop Market Prices</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Enter crop details and conditions to predict future market prices. 
+                    This helps you make informed decisions about when to sell your crops for maximum profit.</p>
+                </div>
+                <form id="market-prediction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="market-crop">Crop:</label>
+                            <select id="market-crop" required>
+                                <option value="">Select Crop</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Barley">Barley</option>
+                                <option value="Soybean">Soybean</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Potato">Potato</option>
+                                <option value="Tomato">Tomato</option>
+                                <option value="Coffee">Coffee</option>
+                                <option value="Tea">Tea</option>
+                            </select>
+                            <small class="form-text">Type of crop</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="market-region">Region:</label>
+                            <select id="market-region" required>
+                                <option value="">Select Region</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="Central">Central</option>
+                                <option value="Northeast">Northeast</option>
+                                <option value="Southeast">Southeast</option>
+                                <option value="Northwest">Northwest</option>
+                                <option value="Southwest">Southwest</option>
+                            </select>
+                            <small class="form-text">Geographical region</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="market-season">Season:</label>
+                            <select id="market-season" required>
+                                <option value="">Select Season</option>
+                                <option value="Spring">Spring</option>
+                                <option value="Summer">Summer</option>
+                                <option value="Autumn">Autumn/Fall</option>
+                                <option value="Winter">Winter</option>
+                            </select>
+                            <small class="form-text">Growing season</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expected-yield">Expected Yield (tons/ha):</label>
+                            <input type="number" id="expected-yield" step="0.1" min="0" max="20" placeholder="e.g., 3.5" required>
+                            <small class="form-text">Predicted yield from your yield prediction</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="global-demand">Global Demand:</label>
+                            <select id="global-demand" required>
+                                <option value="medium">Medium (Default)</option>
+                                <option value="high">High</option>
+                                <option value="low">Low</option>
+                            </select>
+                            <small class="form-text">Expected global demand level</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="weather-impact">Weather Impact:</label>
+                            <select id="weather-impact" required>
+                                <option value="normal">Normal (Default)</option>
+                                <option value="poor">Poor</option>
+                                <option value="excellent">Excellent</option>
+                            </select>
+                            <small class="form-text">Impact of weather on crop production</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="economic-condition">Economic Condition:</label>
+                            <select id="economic-condition">
+                                <option value="stable">Stable</option>
+                                <option value="growth">Growth</option>
+                                <option value="recession">Recession</option>
+                            </select>
+                            <small class="form-text">Current economic conditions</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="supply-index">Supply Index (0-100):</label>
+                            <input type="number" id="supply-index" step="1" min="0" max="100" value="60">
+                            <small class="form-text">Supply level indicator</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="demand-index">Demand Index (0-100):</label>
+                            <input type="number" id="demand-index" step="1" min="0" max="100" value="60">
+                            <small class="form-text">Demand level indicator</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inventory-level">Inventory Level (0-100):</label>
+                            <input type="number" id="inventory-level" step="1" min="0" max="100" value="50">
+                            <small class="form-text">Current inventory levels</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="export-demand">Export Demand (0-100):</label>
+                            <input type="number" id="export-demand" step="1" min="0" max="100" value="60">
+                            <small class="form-text">Export demand level</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="production-cost">Production Cost ($/ton):</label>
+                            <input type="number" id="production-cost" step="1" min="0" max="5000" value="200">
+                            <small class="form-text">Production cost per ton</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="days-to-harvest">Days to Harvest:</label>
+                            <input type="number" id="days-to-harvest" step="1" min="1" max="365" value="90">
+                            <small class="form-text">Days until harvest</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="fertilizer-usage">Fertilizer Usage:</label>
+                            <select id="fertilizer-usage">
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="high">High</option>
+                            </select>
+                            <small class="form-text">Fertilizer usage level</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="irrigation-usage">Irrigation Usage:</label>
+                            <select id="irrigation-usage">
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="high">High</option>
+                            </select>
+                            <small class="form-text">Irrigation usage level</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn primary">Predict Market Price</button>
+                </form>
+            </div>
+            
+            <div id="market-prediction-results" class="card" style="display: none;">
+                <h3>Market Prediction Results</h3>
+                <div id="market-prediction-output">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Pest Predictions Section -->
+        <section id="pest-predictions" class="feature-section">
+            <h2>Pest Prediction</h2>
+            <div class="card">
+                <h3>Enter Farm Data for Pest Prediction</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Enter the farm conditions and crop details to predict potential pest occurrences. 
+                    All fields are required for accurate predictions.</p>
+                </div>
+                <form id="pest-prediction-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-crop">Crop:</label>
+                            <select id="pest-crop" required>
+                                <option value="">Select Crop</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Barley">Barley</option>
+                                <option value="Soybean">Soybean</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Potato">Potato</option>
+                                <option value="Tomato">Tomato</option>
+                            </select>
+                            <small class="form-text">Type of crop being grown</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-region">Region:</label>
+                            <select id="pest-region" required>
+                                <option value="">Select Region</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="Central">Central</option>
+                                <option value="Northeast">Northeast</option>
+                                <option value="Southeast">Southeast</option>
+                                <option value="Northwest">Northwest</option>
+                                <option value="Southwest">Southwest</option>
+                            </select>
+                            <small class="form-text">Geographical region of the farm</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-season">Season:</label>
+                            <select id="pest-season" required>
+                                <option value="">Select Season</option>
+                                <option value="Spring">Spring</option>
+                                <option value="Summer">Summer</option>
+                                <option value="Autumn">Autumn</option>
+                                <option value="Winter">Winter</option>
+                            </select>
+                            <small class="form-text">Current growing season</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-temperature">Temperature (°C):</label>
+                            <input type="number" id="pest-temperature" step="0.1" min="-10" max="50" placeholder="e.g., 25.3" required>
+                            <small class="form-text">Average temperature in your area</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-humidity">Humidity (%):</label>
+                            <input type="number" id="pest-humidity" step="0.1" min="0" max="100" placeholder="e.g., 65.0" required>
+                            <small class="form-text">Average humidity level</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-rainfall">Rainfall (mm):</label>
+                            <input type="number" id="pest-rainfall" step="0.1" min="0" max="500" placeholder="e.g., 120.5" required>
+                            <small class="form-text">Monthly rainfall amount</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-wind-speed">Wind Speed (km/h):</label>
+                            <input type="number" id="pest-wind-speed" step="0.1" min="0" max="100" placeholder="e.g., 15.5" required>
+                            <small class="form-text">Average wind speed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-soil-moisture">Soil Moisture (%):</label>
+                            <input type="number" id="pest-soil-moisture" step="0.1" min="0" max="100" placeholder="e.g., 45.0" required>
+                            <small class="form-text">Soil moisture content</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-soil-ph">Soil pH:</label>
+                            <input type="number" id="pest-soil-ph" step="0.1" min="0" max="14" placeholder="e.g., 6.5" required>
+                            <small class="form-text">Soil acidity level (0-14 scale)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-soil-type">Soil Type:</label>
+                            <select id="pest-soil-type" required>
+                                <option value="">Select Soil Type</option>
+                                <option value="Sandy">Sandy</option>
+                                <option value="Clay">Clay</option>
+                                <option value="Loam">Loam</option>
+                                <option value="Silt">Silt</option>
+                                <option value="Peat">Peat</option>
+                                <option value="Chalky">Chalky</option>
+                            </select>
+                            <small class="form-text">Type of soil in the farm</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-nitrogen">Nitrogen (kg/ha):</label>
+                            <input type="number" id="pest-nitrogen" step="0.1" min="0" max="500" placeholder="e.g., 120.5" required>
+                            <small class="form-text">Amount of nitrogen in the soil</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-phosphorus">Phosphorus (kg/ha):</label>
+                            <input type="number" id="pest-phosphorus" step="0.1" min="0" max="500" placeholder="e.g., 45.2" required>
+                            <small class="form-text">Amount of phosphorus in the soil</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-potassium">Potassium (kg/ha):</label>
+                            <input type="number" id="pest-potassium" step="0.1" min="0" max="500" placeholder="e.g., 90.8" required>
+                            <small class="form-text">Amount of potassium in the soil</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-weather-condition">Weather Condition:</label>
+                            <select id="pest-weather-condition" required>
+                                <option value="">Select Condition</option>
+                                <option value="Sunny">Sunny</option>
+                                <option value="Cloudy">Cloudy</option>
+                                <option value="Rainy">Rainy</option>
+                                <option value="Humid">Humid</option>
+                                <option value="Stormy">Stormy</option>
+                            </select>
+                            <small class="form-text">Current weather condition</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-irrigation-method">Irrigation Method:</label>
+                            <select id="pest-irrigation-method" required>
+                                <option value="">Select Method</option>
+                                <option value="Drip">Drip</option>
+                                <option value="Sprinkler">Sprinkler</option>
+                                <option value="Furrow">Furrow</option>
+                                <option value="Flood">Flood</option>
+                                <option value="None">None</option>
+                            </select>
+                            <small class="form-text">Type of irrigation used</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pest-previous-crop">Previous Crop:</label>
+                            <select id="pest-previous-crop" required>
+                                <option value="">Select Crop</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Barley">Barley</option>
+                                <option value="Soybean">Soybean</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Potato">Potato</option>
+                                <option value="Tomato">Tomato</option>
+                                <option value="None">None</option>
+                            </select>
+                            <small class="form-text">Crop grown in this field previously</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-days-since-planting">Days Since Planting:</label>
+                            <input type="number" id="pest-days-since-planting" min="1" max="365" placeholder="e.g., 60" required>
+                            <small class="form-text">Number of days since crop was planted</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pest-plant-density">Plant Density (plants/ha):</label>
+                            <input type="number" id="pest-plant-density" min="1000" max="100000" placeholder="e.g., 50000" required>
+                            <small class="form-text">Number of plants per hectare</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden CSRF token field -->
+                    {% csrf_token %}
+                    
+                    <button type="submit" class="btn primary">Predict Pest Occurrence</button>
+                </form>
+            </div>
+            
+            <div id="pest-prediction-results" class="card" style="display: none;">
+                <h3>Pest Prediction Results</h3>
+                <div id="pest-prediction-output">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports and Charts Section -->
+        <section id="reports-charts" class="feature-section">
+            <h2>Reports & Charts</h2>
+            <div class="card">
+                <h3>Generate Agricultural Reports</h3>
+                <div class="instructions">
+                    <p><strong>How to use:</strong> Select the type of report you want to generate and the time period. 
+                    The system will create visual charts and data summaries for your agricultural activities.</p>
+                </div>
+                <div class="report-controls">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="report-type">Report Type:</label>
+                            <select id="report-type">
+                                <option value="predictions">Predictions Report</option>
+                                <option value="diseases">Disease Detection Report</option>
+                                <option value="recommendations">Recommendations Report</option>
+                                <option value="pests">Pest Predictions Report</option>
+                                <option value="market">Market Predictions Report</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="time-range">Time Range:</label>
+                            <select id="time-range">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30" selected>Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button id="generate-report" class="btn primary">Generate Report</button>
+                        <button id="download-pdf" class="btn" style="display: none;">Download PDF</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="report-results" class="card" style="display: none;">
+                <h3>Report Results</h3>
+                <div id="report-output">
+                    <!-- Report results will be populated here -->
+                </div>
+                
+                <div id="chart-container" style="margin-top: 2rem;">
+                    <canvas id="report-chart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+        <!-- Chatbot Section -->
+        <section id="chatbot-section" class="feature-section">
+            <div class="card">
+                <div class="chat-container-inline" id="chatContainer">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="bot-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>AgriIntel AI Assistant</h1>
+                    <p class="status">
+                        <span class="status-dot"></span>
+                        <span id="chatStatus">Connecting...</span>
+                    </p>
+                </div>
+            </div>
+            <button class="minimize-btn" onclick="closeChatbot()" title="Close chatbot">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome Message -->
+            <div class="message bot-message">
+                <div class="message-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <p>👋 Hello! I'm your AgriIntel AI Assistant. I can help you with:</p>
+                        <ul>
+                            <li>🌾 Crop recommendations and yield predictions</li>
+                            <li>🌡️ Weather and climate advice</li>
+                            <li>🧪 Soil analysis and fertilizer suggestions</li>
+                            <li>🐛 Pest and disease identification</li>
+                            <li>📈 Market price forecasts</li>
+                            <li>💡 General farming best practices</li>
+                        </ul>
+                        <p>How can I assist you today?</p>
+                    </div>
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="message bot-message">
+                <div class="message-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    class="chat-input" 
+                    placeholder="Ask me anything about farming..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()" title="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-hints">
+                <button class="hint-chip" onclick="setMessage('What crops should I plant this season?')">
+                    🌱 Crop recommendations
+                </button>
+                <button class="hint-chip" onclick="setMessage('How can I improve my soil quality?')">
+                    🌾 Soil improvement
+                </button>
+                <button class="hint-chip" onclick="setMessage('What are the market prices for wheat?')">
+                    💰 Market prices
+                </button>
+            </div>
+        </div>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <!-- Floating Chatbot Button -->
+    <button class="floating-chat-btn" id="floatingChatBtn" onclick="openChatbot()" title="Open AI Chatbot">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+        </svg>
+    </button>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Smart Agriculture Platform. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Floating button navigates to chatbot section
+        function openChatbot() {
+            // Trigger the nav link click to show chatbot section
+            const chatbotLink = document.querySelector('a[data-target="chatbot-section"]');
+            if (chatbotLink) {
+                chatbotLink.click();
+                // Scroll to chatbot section immediately
+                setTimeout(() => {
+                    const chatbotSection = document.getElementById('chatbot-section');
+                    if (chatbotSection) {
+                        chatbotSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Focus on input after scrolling
+                        setTimeout(() => {
+                            const messageInput = document.getElementById('messageInput');
+                            if (messageInput) messageInput.focus();
+                        }, 500);
+                    }
+                }, 100);
+            }
+        }
+    </script>
+    
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/predictions.js"></script>
+    <script src="/static/js/disease.js"></script>
+    <script src="/static/js/recommendations.js"></script>
+    <script src="/static/js/market_predictions.js"></script>
+    <script src="/static/js/pest_predictions.js"></script>
+    <script src="/static/js/chatbot.js"></script>
+</body>
+</html>

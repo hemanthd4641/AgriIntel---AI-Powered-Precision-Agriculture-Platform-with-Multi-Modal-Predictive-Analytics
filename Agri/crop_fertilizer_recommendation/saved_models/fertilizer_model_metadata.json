@@ -1,0 +1,43 @@
+{
+  "model_type": "GradientBoosting",
+  "accuracy": 0.99,
+  "features": [
+    "Nitrogen",
+    "Phosphorus",
+    "Potassium",
+    "pH",
+    "Crop_Type_Encoded",
+    "Moisture"
+  ],
+  "classes": [
+    "DAP",
+    "MOP",
+    "NPK 15-15-15",
+    "SSP",
+    "Urea"
+  ],
+  "insights": {
+    "model_type": "GradientBoosting",
+    "training_samples": 400,
+    "features": [
+      "Nitrogen",
+      "Phosphorus",
+      "Potassium",
+      "pH",
+      "Crop_Type_Encoded",
+      "Moisture"
+    ],
+    "classes": [
+      "DAP",
+      "MOP",
+      "NPK 15-15-15",
+      "SSP",
+      "Urea"
+    ],
+    "feature_importance": {},
+    "model_performance": {},
+    "model_accuracy": 0.99
+  },
+  "sample_explanation": "Based on the analysis of your soil conditions and crop type, DAP is the recommended fertilizer for your farm.\n\nKey factors supporting this recommendation:\n- Soil nutrients (N:40.0, P:35.0, K:60.0) indicate nitrogen deficiency, making nitrogen-rich fertilizers like Urea ideal.\n- Soil pH (6.5) is optimal for most crops and fertilizer uptake.\n\nDAP is recommended because:\n- High phosphorus content (46% P2O5)\n- Promotes root development and flowering\n- Best applied at planting time\n\nFor Wheat cultivation:\n- Apply according to recommended rates based on soil test results\n- Consider split applications for better nutrient uptake\n- Monitor plant response and adjust application rates accordingly",
+  "training_date": "2025-10-07T16:42:23.550314"
+}
