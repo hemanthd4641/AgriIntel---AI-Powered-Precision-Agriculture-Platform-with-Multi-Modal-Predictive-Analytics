@@ -1,3 +1,0 @@
-"""
-Pest Prediction RAG Module
-"""
